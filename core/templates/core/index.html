@@ -1,0 +1,63 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A Django starter application running on Wodby.">
+    <title>Django on Wodby</title>
+    <link rel="icon" href="{% static 'core/favicon.svg' %}" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="eyebrow">
+          <span class="status-dot" aria-hidden="true"></span>
+          Deployment healthy
+        </div>
+        <p class="framework">Django + Wodby</p>
+        <h1 id="page-title">Your Django app is running.</h1>
+        <p class="intro">
+          The project is connected to Django, PostgreSQL, static asset handling,
+          and the Wodby deployment workflow. Start with the core app or add a new
+          app for your product.
+        </p>
+        <div class="actions">
+          <a class="button button-primary" href="https://docs.djangoproject.com/en/5.2/intro/tutorial01/">
+            Build with Django
+          </a>
+          <a class="button button-secondary" href="https://wodby.com/docs/2.0/">
+            Explore Wodby
+          </a>
+        </div>
+      </section>
+
+      <section class="next-steps" aria-labelledby="next-steps-title">
+        <div class="section-heading">
+          <p class="section-number">01</p>
+          <h2 id="next-steps-title">Make it yours</h2>
+        </div>
+        <ol class="step-grid">
+          <li>
+            <span class="step-label">Create an app</span>
+            <code>uv run python manage.py startapp products</code>
+          </li>
+          <li>
+            <span class="step-label">Prepare the database</span>
+            <code>uv run python manage.py migrate</code>
+          </li>
+          <li>
+            <span class="step-label">Open the admin</span>
+            <a href="{% url 'admin:index' %}">Visit Django administration</a>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer>
+      <span>Starter ready</span>
+      <a href="{% url 'core:healthz' %}">Health check</a>
+    </footer>
+  </body>
+</html>

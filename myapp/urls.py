@@ -1,18 +1,7 @@
 from django.contrib import admin
-from django.http import JsonResponse
-from django.urls import path
-
-
-def index(_request):
-    return JsonResponse({"message": "Hello from Wodby Django"})
-
-
-def healthz(_request):
-    return JsonResponse({"status": "ok"})
-
+from django.urls import include, path
 
 urlpatterns = [
-    path("", index),
-    path("healthz", healthz),
+    path("", include("core.urls")),
     path("admin/", admin.site.urls),
 ]
