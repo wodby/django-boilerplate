@@ -1,6 +1,8 @@
+import json
 import os
 from pathlib import Path
 
+import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,13 +16,26 @@ if not SECRET_KEY:
         )
     SECRET_KEY = "development-only-secret-key"
 
-# Wodby's gateway validates public route hostnames. Set DJANGO_ALLOWED_HOSTS
-# explicitly when deploying this starter behind a different ingress.
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
-    if host.strip()
-]
+configured_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
+if configured_hosts:
+    ALLOWED_HOSTS = [
+        host.strip() for host in configured_hosts.split(",") if host.strip()
+    ]
+else:
+    try:
+        ALLOWED_HOSTS = json.loads(os.environ.get("WODBY_HOSTS", "[]"))
+    except json.JSONDecodeError as error:
+        raise ImproperlyConfigured("WODBY_HOSTS must be a JSON array.") from error
+    if not isinstance(ALLOWED_HOSTS, list) or not all(
+        isinstance(host, str) for host in ALLOWED_HOSTS
+    ):
+        raise ImproperlyConfigured("WODBY_HOSTS must be a JSON array of hostnames.")
+
+wodby_service_host = os.environ.get("WODBY_APP_SERVICE_NAME")
+if wodby_service_host and wodby_service_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(wodby_service_host)
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"] if DEBUG else ["*"]
 
 INSTALLED_APPS = [
     "core.apps.CoreConfig",
@@ -62,7 +77,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "myapp.wsgi.application"
 
-if os.environ.get("DB_HOST"):
+if os.environ.get("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=60,
+            conn_health_checks=True,
+        )
+    }
+elif os.environ.get("DB_HOST"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -83,6 +105,14 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+if os.environ.get("CELERY_BROKER_URL"):
+    CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
+
+if os.environ.get("SMTP_HOST"):
+    EMAIL_HOST = os.environ["SMTP_HOST"]
+    EMAIL_PORT = int(os.environ.get("SMTP_PORT", "25"))
+    EMAIL_TIMEOUT = 5
 
 AUTH_PASSWORD_VALIDATORS = [
     {

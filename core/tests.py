@@ -1,6 +1,8 @@
 from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 
+from core.tasks import add
+
 
 @override_settings(
     STORAGES={
@@ -23,3 +25,8 @@ class ViewsTest(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {"status": "ok"})
+
+
+class TasksTest(SimpleTestCase):
+    def test_add(self):
+        self.assertEqual(add.run(2, 3), 5)
