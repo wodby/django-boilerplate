@@ -81,8 +81,10 @@ cache instance when needed. The linked SMTP service is used through
 `SMTP_HOST` and `SMTP_PORT` when enabled.
 
 On Wodby, `ALLOWED_HOSTS` is derived from the JSON `WODBY_HOSTS` route list and
-the internal `WODBY_APP_SERVICE_NAME`. Set `DJANGO_ALLOWED_HOSTS` to a
-comma-separated list to override route-derived hosts outside Wodby.
+the internal `WODBY_APP_SERVICE_NAME`. Loopback hosts remain allowed so Wodby's
+in-container readiness probes can reach the application. Set
+`DJANGO_ALLOWED_HOSTS` to a comma-separated list to override route-derived
+hosts outside Wodby.
 
 Wodby terminates TLS and enables HTTPS redirects in its default route settings,
 so the starter does not duplicate that redirect in Django. If you deploy behind

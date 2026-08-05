@@ -16,26 +16,41 @@ if not SECRET_KEY:
         )
     SECRET_KEY = "development-only-secret-key"
 
-configured_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
-if configured_hosts:
-    ALLOWED_HOSTS = [
-        host.strip() for host in configured_hosts.split(",") if host.strip()
-    ]
-else:
-    try:
-        ALLOWED_HOSTS = json.loads(os.environ.get("WODBY_HOSTS", "[]"))
-    except json.JSONDecodeError as error:
-        raise ImproperlyConfigured("WODBY_HOSTS must be a JSON array.") from error
-    if not isinstance(ALLOWED_HOSTS, list) or not all(
-        isinstance(host, str) for host in ALLOWED_HOSTS
-    ):
-        raise ImproperlyConfigured("WODBY_HOSTS must be a JSON array of hostnames.")
+LOOPBACK_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 
-wodby_service_host = os.environ.get("WODBY_APP_SERVICE_NAME")
-if wodby_service_host and wodby_service_host not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(wodby_service_host)
-if not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"] if DEBUG else ["*"]
+
+def get_allowed_hosts(debug: bool) -> list[str]:
+    """Build the host allowlist, including Wodby's loopback probe targets."""
+    configured_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
+    if configured_hosts:
+        allowed_hosts = [
+            host.strip() for host in configured_hosts.split(",") if host.strip()
+        ]
+    else:
+        try:
+            allowed_hosts = json.loads(os.environ.get("WODBY_HOSTS", "[]"))
+        except json.JSONDecodeError as error:
+            raise ImproperlyConfigured("WODBY_HOSTS must be a JSON array.") from error
+        if not isinstance(allowed_hosts, list) or not all(
+            isinstance(host, str) for host in allowed_hosts
+        ):
+            raise ImproperlyConfigured("WODBY_HOSTS must be a JSON array of hostnames.")
+
+    wodby_service_host = os.environ.get("WODBY_APP_SERVICE_NAME")
+    if wodby_service_host and wodby_service_host not in allowed_hosts:
+        allowed_hosts.append(wodby_service_host)
+
+    if os.environ.get("WODBY") and "*" not in allowed_hosts:
+        allowed_hosts.extend(
+            host for host in LOOPBACK_HOSTS if host not in allowed_hosts
+        )
+
+    if not allowed_hosts:
+        return list(LOOPBACK_HOSTS) if debug else ["*"]
+    return allowed_hosts
+
+
+ALLOWED_HOSTS = get_allowed_hosts(DEBUG)
 
 INSTALLED_APPS = [
     "core.apps.CoreConfig",
