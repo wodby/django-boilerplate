@@ -9,6 +9,10 @@ jobs:
           --retry-connrefused \
           "http://${WODBY_APP_SERVICE_NAME}:8080/healthz"
     - run: |
+        if [ -z "${CELERY_BROKER_URL:-}" ]; then
+          echo "CELERY_BROKER_URL is not configured; skipping Celery worker check"
+          exit 0
+        fi
         for attempt in 1 2 3 4 5; do
           celery status --timeout=5 && exit 0
           sleep 2

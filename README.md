@@ -8,7 +8,7 @@ The project uses Django 5.2 LTS so it works with every Python version offered by
 - a responsive template and static asset example
 - PostgreSQL configuration through Wodby's secret `DATABASE_URL`, with a
   `DB_*` compatibility fallback
-- Celery background jobs through a persistent Valkey broker
+- optional Celery background jobs through a persistent Valkey broker
 - Gunicorn and WhiteNoise for production serving
 - Wodby CI build, release, deployment, and post-deployment checks
 - a lightweight health endpoint at `/healthz`
@@ -55,13 +55,14 @@ When `DATABASE_URL` is set, it is the authoritative database connection.
 Component `DB_*` variables remain supported for compatibility; when neither
 form is present, local development uses SQLite.
 
-The stack supplies a secret `CELERY_BROKER_URL` to both the web service and its
-Celery worker derivative. `CELERY_APP` selects the boilerplate's `myapp`
-package and can be overridden for custom project layouts. `myapp/celery.py`
-loads Django settings using Celery's standard `CELERY_*` namespace and
-discovers tasks such as the example in `core/tasks.py`. Task results are
-intentionally disabled; add a result backend only when the application needs
-to retrieve them.
+When a stack supplies a secret `CELERY_BROKER_URL`, the boilerplate configures
+Celery and verifies the worker after deployment. `CELERY_APP` selects the
+boilerplate's `myapp` package and can be overridden for custom project layouts.
+`myapp/celery.py` loads Django settings using Celery's standard `CELERY_*`
+namespace and discovers tasks such as the example in `core/tasks.py`. Task
+results are intentionally disabled; add a result backend only when the
+application needs to retrieve them. Custom stacks whose applications do not
+enqueue background jobs can omit both the Redis link and Celery worker.
 
 To exercise background jobs locally, start Redis or Valkey and run a worker in
 a second terminal:
