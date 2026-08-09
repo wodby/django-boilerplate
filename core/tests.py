@@ -7,15 +7,15 @@ from django.urls import reverse
 from core.tasks import add
 from myapp.settings import get_allowed_hosts
 
+TEST_STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
+}
 
-@override_settings(
-    STORAGES={
-        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
-        },
-    }
-)
+
+@override_settings(STORAGES=TEST_STORAGES)
 class ViewsTest(SimpleTestCase):
     def test_index(self):
         response = self.client.get(reverse("core:index"))
@@ -36,6 +36,7 @@ class TasksTest(SimpleTestCase):
         self.assertEqual(add.run(2, 3), 5)
 
 
+@override_settings(STORAGES=TEST_STORAGES)
 class AllowedHostsTest(SimpleTestCase):
     @patch.dict(
         os.environ,
