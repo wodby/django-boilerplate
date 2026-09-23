@@ -10,7 +10,7 @@ The project uses Django 5.2 LTS so it works with every Python version offered by
   `DB_*` compatibility fallback
 - optional Celery background jobs through a persistent Valkey broker
 - Gunicorn and WhiteNoise for production serving
-- Wodby CI build, release, deployment, and post-deployment checks
+- Wodby CI build, push, deployment, and post-deployment checks
 - a lightweight health endpoint at `/healthz`
 
 ## Local development
