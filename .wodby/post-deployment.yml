@@ -13,8 +13,10 @@ jobs:
           echo "CELERY_BROKER_URL is not configured; skipping Celery worker check"
           exit 0
         fi
-        for attempt in 1 2 3 4 5; do
+        # A worker that started with this deployment may need a while to connect to the broker; wait up to about
+        # two minutes for it to answer.
+        for attempt in $(seq 1 12); do
           celery status --timeout=5 && exit 0
-          sleep 2
+          sleep 5
         done
         exit 1
